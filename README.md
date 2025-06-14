@@ -5,6 +5,7 @@
 ### CLAUDE.md
 - [Anthropicで利用されているモダンなPython開発のベストプラクティス](https://zenn.dev/yareyare/articles/d67aa75b37537c)
 - https://github.com/modelcontextprotocol/python-sdk/blob/main/CLAUDE.md
+- [Claude 4 プロンプトエンジニアリングのベストプラクティス](https://docs.anthropic.com/ja/docs/build-with-claude/prompt-engineering/claude-4-best-practices)
 
 ### ディレクトリ構成
 - [バクラクのモノレポにおける AI Coding のための環境整備と {Roo,Claude} Code活用事例](https://speakerdeck.com/upamune/ai-coding-in-bakurakus-monorepo-environment-setup-and-case-studies-with-roo-claude-code)
