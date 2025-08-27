@@ -1,0 +1,110 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened]
+    # Optional: Only run on specific file changes
+    # paths:
+    #   - "src/**/*.ts"
+    #   - "src/**/*.tsx"
+    #   - "src/**/*.js"
+    #   - "src/**/*.jsx"
+
+jobs:
+  claude-review:
+    # Optional: Filter by PR author
+    # if: |
+    #   github.event.pull_request.user.login == 'external-contributor' ||
+    #   github.event.pull_request.user.login == 'new-developer' ||
+    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Code Review
+        id: claude-review
+        uses: anthropics/claude-code-action@beta
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # Optional: Specify model (defaults to Claude Sonnet 4, uncomment for Claude Opus 4)
+          model: "claude-opus-4-20250514"
+
+          # Direct prompt for automated review (no @claude mention needed)
+          direct_prompt: |
+            このプルリクエスト（PR）をレビューし、GitHub のレビュー機能を使ってフィードバックをしてください。作業は次の手順に沿って進めてください：
+            1.  レビューを開始する: `mcp__github__create_pending_pull_request_review` を使って、保留中のレビューを開始します。
+            2.  変更内容を確認する: `mcp__github__get_pull_request_diff` を使って、コードの変更点や行番号を把握します。
+            3.  インラインコメントを追加する: 改善点や懸念事項があるコードの行には `mcp__github__add_pull_request_review_comment_to_pending_review` を使ってコメントを追加してください。修正方針が明確な場合には積極的にsuggestionを利用してください。
+            4.  レビューを提出する: `mcp__github__submit_pending_pull_request_review` を使って、イベントタイプを「COMMENT」に設定し、全体のまとめコメントと共にレビューを提出してください（※「REQUEST_CHANGES」は使わないでください）。
+
+            ## コメントの書き方に関する重要事項
+
+            ### インラインコメントの構成
+                - 結論を先に: 各インラインコメントの冒頭で、指摘内容の要点を一行で簡潔に述べてください。
+                - 理由と提案: 結論の後に、そのように判断した理由や背景、具体的な修正案を詳しく説明してください。
+                - 指摘中心に: インラインコメントは、修正提案、バグの可能性、可読性の問題など、具体的な改善点に焦点を当ててください。
+                - AI用のプロンプトを記載: AIエージェントに修正をしてもらうようなプロンプトを、以下を参考に記載してください。
+                <details>
+                <summary>🤖 Prompt for AI Agents</summary>
+
+                ```
+                `bird-and-beans/js/collision.js` の 25 行目で、static メソッド内で `this.checkPointInRect` が誤って使われています。正しい static コンテキストで参照できるように、`this` をクラス名に置き換えてください。
+                ```
+
+                </details>
+
+            ### ポジティブなフィードバックについて
+                - インラインでは控えめに: インラインで言及するのは、特に優れた設計や他の開発者の参考になるような独創的な実装など、特筆すべき点に限定します。
+                - まとめコメントで言及: 全体的に良かった点や、PR全体に対するポジティブな感想は、レビュー提出時の「まとめコメント」に集約して記述してください。
+
+            ## レビューの観点
+
+            レビューでは以下の点に注目してください：
+            - CLAUDE.mdのガイドラインに従っているか
+            - コードの品質やベストプラクティスに沿っているか
+            - バグやセキュリティリスクがないか
+            - パフォーマンス上の懸念がないか
+            - 保守性や可読性は十分か
+            - 設計やアーキテクチャに妥当性があるか
+
+            ## その他
+
+            - 日本語でのフィードバックをお願いします。
+            - 具体的で実行可能なフィードバックをお願いします。
+            - **重要:** レビューの提出は必ず「COMMENT」タイプで行い、PR をブロックしないようにしてください。
+
+          # Optional: Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
+          # use_sticky_comment: true
+
+          # Optional: Customize review based on file types
+          # direct_prompt: |
+          #   Review this PR focusing on:
+          #   - For TypeScript files: Type safety and proper interface usage
+          #   - For API endpoints: Security, input validation, and error handling
+          #   - For React components: Performance, accessibility, and best practices
+          #   - For tests: Coverage, edge cases, and test quality
+
+          # Optional: Different prompts for different authors
+          # direct_prompt: |
+          #   ${{ github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR' &&
+          #   'Welcome! Please review this PR from a first-time contributor. Be encouraging and provide detailed explanations for any suggestions.' ||
+          #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
+
+          # Optional: Add specific tools for running tests or linting
+          allowed_tools: "mcp__github__create_pending_pull_request_review,mcp__github__add_pull_request_review_comment_to_pending_review,mcp__github__submit_pending_pull_request_review,mcp__github__get_pull_request_diffBash(npm run lint),Bash(npm run lint:fix),Bash(npm run format),Bash(npm run check-format)"
+
+          # Optional: Skip review for certain conditions
+          # if: |
+          #   !contains(github.event.pull_request.title, '[skip-review]') &&
+          #   !contains(github.event.pull_request.title, '[WIP]')
