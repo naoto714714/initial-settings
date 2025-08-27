@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [],
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(rm:*)",
+      "Bash(rm -rf:*)",
+      "Bash(git reset:*)",
+      "Bash(git rebase:*)",
+      "Read(.env.*)",
+      "Read(id_rsa)",
+      "Read(id_ed25519)",
+      "Read(**/*token*)",
+      "Read(**/*key*)",
+      "Write(.env*)",
+      "Write(**/secrets/**)",
+      "Bash(wget:*)",
+      "Bash(nc:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm remove:*)",
+      "Bash(psql:*)",
+      "Bash(mysql:*)",
+      "Bash(mongod:*)",
+      "mcp__supabase__execute_sql"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{
+        "type": "command",
+        "command": "echo \"[$(date)] $USER: $(jq -r '.tool_input.command')\" >> .claude/command_history.log"
+      }]
+    }],
+    "Stop": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "afplay /System/Library/Sounds/Pop.aiff"
+      }]
+    }]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bun x ccusage statusline"
+  },
+  "cleanupPeriodDays": 876000,
+  "enableAllProjectMcpServers": true,
+  "includeCoAuthoredBy": false,
+  "model": "opus",
+  "env": {
+      "BASH_DEFAULT_TIMEOUT_MS": "600000",
+      "BASH_MAX_TIMEOUT_MS": "600000",
+      "CLAUDE_CODE_AUTO_CONNECT_IDE": "0",
+      "CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL": "1",
+      "CLAUDE_CODE_IDE_SKIP_VALID_CHECK": "1",
+      "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
+      "DISABLE_MICROCOMPACT": "1",
+      "DISABLE_INTERLEAVED_THINKING": "1",
+      "DISABLE_ERROR_REPORTING": "1"
+  }
+}
