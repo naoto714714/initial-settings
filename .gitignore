@@ -1,6 +1,6 @@
 # プロジェクト固有のもの
-z/*
-!z/.gitkeep
+# z/*
+# !z/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
